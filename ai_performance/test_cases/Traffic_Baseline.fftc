@@ -11,11 +11,64 @@
                     <stc_ip>10.140.99.28</stc_ip>
                     <east_ports>1/1 1/2</east_ports>
                     <west_ports>1/3 1/4</west_ports>
+                    <ports_list>1/1 1/2 1/3 1/4</ports_list>
                 </parameters>
             </parameters>
         </parameters>
     </execution>
     <procedures>
-        <item name="main"/>
+        <item name="main">
+            <steps>
+                <item guid="5df24ff3-0343-4f60-9e87-0156cb243fba" action="eval" useFieldsInCommand="false">
+                    <command>
+                        <body>stc_ip = param(&apos;stc_ip&apos;)</body>
+                    </command>
+                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                </item>
+                <item guid="b22dfd9e-88bf-4c5e-9350-625a8e02e554" action="eval" useFieldsInCommand="false">
+                    <command>
+                        <body>stc_ports = param(&apos;ports_list&apos;)</body>
+                    </command>
+                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                </item>
+                <item guid="7791d1a9-2a0c-4003-9bcd-fe04c00820c3" action="eval" useFieldsInCommand="false">
+                    <command>
+                        <body>stc_config_file = file_uriToPath(param(&apos;config_file&apos;)).replace(&apos;\\\\&apos;,&apos;/&apos;)</body>
+                    </command>
+                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                </item>
+                <item guid="5c9eefe8-cfec-4b00-bb4c-b042484a2a44" action="eval" useFieldsInCommand="false">
+                    <command>
+                        <body>print(stc_config_file)</body>
+                    </command>
+                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                </item>
+                <item guid="70bf0b85-2468-4cea-8dcf-dd9d86e83cfa" action="open" session="s1" useFieldsInCommand="false">
+                    <command>
+                        <body>project://d_STC/session_profiles/stc_conversion.ffsp</body>
+                    </command>
+                    <applicationProperties type="com.fnfr.svt.documents.OpenStepPropertyGroup">
+                        <stepProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        <sessionProperties type="com.fnfr.svt.adapter.automation.tools.common.documents.TransferableDocumentObject" transferableToolId="com.fnfr.svt.applications.spirent.testcenter.gui" transferableType="com.fnfr.itest.applications.spirent.testcenter.properties.TestCenterGUISessionProperties" ipAddress="[stc_ip]" ipAddress.inherit="false" config="[stc_config_file]" config.inherit="false">
+                            <configureCustom16bitFilter transferableToolId="com.fnfr.svt.applications.spirent.testcenter.gui" transferableType="com.fnfr.itest.applications.spirent.testcenter.properties.Analyzer16BitFilterProperties" mask="ffff" mask.inherit="false" endOfRange="ffff" endOfRange.inherit="false"/>
+                        </sessionProperties>
+                        <sessionClass type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        <sessionVersion type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                    </applicationProperties>
+                </item>
+                <item guid="cda33c81-a03b-4139-8d54-d1703fbf719b" action="eval" session="s1">
+                    <command>
+                        <body>stc::perform loadfromxml -filename [stc_config_file]</body>
+                    </command>
+                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                </item>
+                <item guid="110c0aac-2a56-4a57-87b9-45c8bfbf6a4f" action="eval" session="s1">
+                    <command>
+                        <body>stc::connect [stc_ip]</body>
+                    </command>
+                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                </item>
+            </steps>
+        </item>
     </procedures>
 </testCase>

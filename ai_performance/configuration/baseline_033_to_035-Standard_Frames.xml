@@ -807,7 +807,7 @@ pdu=&quot;EOAMTLV:RplyEgr&quot;&gt;&lt;Length&gt;0000&lt;/Length&gt;&lt;/pdu&gt;
      Name="ExternalDeviceOption 1">
     </ExternalDeviceOption>
     <Dot1xOptions id="8052" 
-     TrafficStartOption="IGNORE_AUTH"
+     TrafficStartOption="IGNORE_FAILED_SUPPLICANT_AUTH"
      Active="TRUE"
      LocalActive="TRUE"
      Name="Dot1xOptions 1">
