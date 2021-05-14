@@ -1,29 +1,39 @@
 <?xml version="1.0"?>
 <testCase version="8.3.1.0">
     <general>
+        <documentation>2544 Throughput Test</documentation>
+        <notes>Runs a pre-defined 2544 sequence, but allows user to remap ports and configure required 2544 settings.</notes>
+        <owner>Michael Gretzinger</owner>
         <language>Python</language>
     </general>
     <execution>
         <parameters version="8.3.1.0">
             <parameters escape="true">
                 <parameters xmlns:pt="http://www.fnfr.com/schemas/parameterTree">
-                    <config_file>project://ai_performance/configuration/baseline_033_to_035-Standard_Frames.xml</config_file>
-                    <stc_ip>10.140.99.28</stc_ip>
-                    <east_ports>1/3 1/4</east_ports>
-                    <west_ports>1/1 1/2</west_ports>
+                    <config_file>project://ai_performance/configuration/baseline_2544_PCL.xml</config_file>
+                    <stc_ip_east>10.140.99.28</stc_ip_east>
+                    <stc_ports_east>1/3 1/4</stc_ports_east>
+                    <stc_ip_west>10.140.99.28</stc_ip_west>
+                    <stc_ports_west>1/1 1/2</stc_ports_west>
                     <stcv_license_server pt:description="Only needed for STC Virtual">10.180.109.190</stcv_license_server>
                     <iteration_duration pt:datatype="INTEGER">20</iteration_duration>
                     <rate_lower_limit pt:datatype="INTEGER" pt:description="percent line rate">1</rate_lower_limit>
                     <rate_upper_limit pt:datatype="INTEGER" pt:description="percent line rate">80</rate_upper_limit>
                     <rate_initial pt:datatype="INTEGER" pt:description="percent line rate">70</rate_initial>
+                    <rate_step pt:description="percent line rate">5</rate_step>
                     <rate_resolution pt:datatype="INTEGER" pt:description="percent">1</rate_resolution>
-                    <frame_sizes pt:description="integer: 64 - 9000 | &apos;imix&apos;   1024 1518 9000 imix">512 imix</frame_sizes>
-                    <results_dir>c:/temp/STC_Results</results_dir>
+                    <frame_sizes pt:description="integer: 64 - 9000 | &apos;imix&apos;   64 128 512 1024 1518 imix"> 64 128 512 1024 1518 9000 imix</frame_sizes>
+                    <results_dir_stc>c:/temp/STC_Results</results_dir_stc>
+                    <results_dir>c:/temp/</results_dir>
+                    <test_description pt:description="Text added to CSV">Test from Leaf033 to Leaf035 (version 1.1)</test_description>
                     <results_columns>
                         <item>FrameSize</item>
                         <item>IntendedLoad</item>
                         <item>ExpectedFrameCount</item>
+                        <item>TxFrameCount</item>
                         <item>RxFrameCount</item>
+                        <item pt:description="calculated from Expected - Rx">LostCount</item>
+                        <item pt:description="calculated from (Expected - Rx)/Expected">LostPercent</item>
                         <item>OfferedFPSLoad</item>
                         <item>ForwardingRate</item>
                         <item>FloodedFrameCount</item>
@@ -39,14 +49,40 @@
     <procedures>
         <item name="main">
             <steps>
+                <item guid="d826af03-fca9-42fd-a699-d78d5caaac86" action="comment" useFieldsInCommand="false">
+                    <command>
+                        <body>import</body>
+                    </command>
+                    <nestedSteps>
+                        <item guid="f6818a2d-70fc-4434-acc4-d049f06483da" action="eval" useFieldsInCommand="false">
+                            <command>
+                                <body>import datetime</body>
+                            </command>
+                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        </item>
+                        <item guid="c13760e3-a1bd-438f-a5d7-7fca966b5b0a" action="eval" useFieldsInCommand="false">
+                            <command>
+                                <body>import os.path</body>
+                            </command>
+                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        </item>
+                    </nestedSteps>
+                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                </item>
                 <item guid="b3163392-cc35-4a6e-9b47-54003cbccbbb" action="comment" useFieldsInCommand="false">
                     <command>
                         <body>get parameters into variables</body>
                     </command>
                     <nestedSteps>
+                        <item guid="4a365936-976d-42f2-b940-f8832bce94f9" action="eval" useFieldsInCommand="false">
+                            <command>
+                                <body>stc_ips = [param(&apos;stc_ip_east&apos;),param(&apos;stc_ip_west&apos;)]</body>
+                            </command>
+                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        </item>
                         <item guid="5df24ff3-0343-4f60-9e87-0156cb243fba" action="eval" useFieldsInCommand="false">
                             <command>
-                                <body>stc_ip = param(&apos;stc_ip&apos;)</body>
+                                <body>stc_ips = list(dict.fromkeys(stc_ips))</body>
                             </command>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
@@ -56,15 +92,15 @@
                             </command>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
-                        <item guid="ac0a8c2c-939f-46ad-b361-6f7f72e8497e" action="eval" useFieldsInCommand="false">
-                            <command>
-                                <body>print(stc_config_file)</body>
-                            </command>
-                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
-                        </item>
                         <item guid="a7af9849-1bbf-4d71-a66e-cc7b01751cb7" action="eval" useFieldsInCommand="false">
                             <command>
                                 <body>stc_config_file = file_uriToPath(param(&apos;config_file&apos;)).replace(&apos;\\\\&apos;,&apos;/&apos;)</body>
+                            </command>
+                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        </item>
+                        <item guid="e46c2d8a-abab-4378-bda7-a1e90ef50437" action="eval" useFieldsInCommand="false">
+                            <command>
+                                <body>time_stamp = datetime.datetime.now().strftime(&apos;%Y-%m-%d_%H-%M&apos;)</body>
                             </command>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
@@ -78,23 +114,10 @@
                     <nestedSteps>
                         <item guid="5252de30-1005-4a31-9320-01722e8b89e8" action="message" useFieldsInCommand="false">
                             <command>
-                                <body>Information:Opening session with STC at ip [stc_ip]</body>
+                                <body>Information:Opening session with STC</body>
                             </command>
                             <applicationProperties type="com.fnfr.svt.execution.builtin.exec.MessagePropertyGroup">
-                                <message inherit="false">Opening session with STC at ip [stc_ip]</message>
-                            </applicationProperties>
-                        </item>
-                        <item guid="70bf0b85-2468-4cea-8dcf-dd9d86e83cfa" action="open" session="s1" skip="true" useFieldsInCommand="false">
-                            <command>
-                                <body>project://d_STC/session_profiles/stc_conversion.ffsp</body>
-                            </command>
-                            <applicationProperties type="com.fnfr.svt.documents.OpenStepPropertyGroup">
-                                <stepProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
-                                <sessionProperties type="com.fnfr.svt.adapter.automation.tools.common.documents.TransferableDocumentObject" transferableToolId="com.fnfr.svt.applications.spirent.testcenter.gui" transferableType="com.fnfr.itest.applications.spirent.testcenter.properties.TestCenterGUISessionProperties" ipAddress="[stc_ip]" ipAddress.inherit="false" config="[stc_config_file]" config.inherit="false">
-                                    <configureCustom16bitFilter transferableToolId="com.fnfr.svt.applications.spirent.testcenter.gui" transferableType="com.fnfr.itest.applications.spirent.testcenter.properties.Analyzer16BitFilterProperties" mask="ffff" mask.inherit="false" endOfRange="ffff" endOfRange.inherit="false"/>
-                                </sessionProperties>
-                                <sessionClass type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
-                                <sessionVersion type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                <message inherit="false">Opening session with STC</message>
                             </applicationProperties>
                         </item>
                         <item guid="f44c7e3e-a643-49df-8f89-f9983b7ad981" action="open" session="s1" useFieldsInCommand="false">
@@ -171,10 +194,75 @@
                             </command>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
-                        <item guid="110c0aac-2a56-4a57-87b9-45c8bfbf6a4f" action="eval" session="s1">
+                        <item guid="ad653653-828f-42bb-bb4f-3d63007ed4a2" action="for" useFieldsInCommand="false">
                             <command>
-                                <body>stc::connect [stc_ip]</body>
+                                <body>stc_ip in stc_ips:</body>
                             </command>
+                            <nestedSteps>
+                                <item guid="110c0aac-2a56-4a57-87b9-45c8bfbf6a4f" action="eval" session="s1">
+                                    <command>
+                                        <body>stc::connect [stc_ip]</body>
+                                    </command>
+                                    <postProcessing>
+                                        <analysisRules>
+                                            <item>
+                                                <extractorInfo extractorType="contains">
+                                                    <extractorProperties type="com.fnfr.svt.mapping.execution.extractors.ExtractorContainsPropertyGroup">
+                                                        <searchString>Failed</searchString>
+                                                    </extractorProperties>
+                                                </extractorInfo>
+                                                <processorInfo ruleType="assert">
+                                                    <ruleProperties type="com.fnfr.svt.execution.builtin.processors.AssertionPropertyGroup">
+                                                        <expression>value == 1</expression>
+                                                        <actionsWhenTrue>
+                                                            <item actionId="FailTest">
+                                                                <actionProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                                            </item>
+                                                            <item actionId="DeclareExecutionIssue">
+                                                                <actionProperties type="com.fnfr.svt.execution.builtin.actions.ExecutionIssuePropertyGroup">
+                                                                    <message>Failed to connect to STC chassis at [stc_ip]</message>
+                                                                </actionProperties>
+                                                            </item>
+                                                            <item actionId="ExitProcedure">
+                                                                <actionProperties type="com.fnfr.svt.execution.builtin.actions.ExitProcedurePropertyGroup"/>
+                                                            </item>
+                                                        </actionsWhenTrue>
+                                                        <actionsWhenFalse>
+                                                            <item actionId="PassTestIfNotAlreadyFailed">
+                                                                <actionProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                                            </item>
+                                                            <item actionId="DeclareExecutionIssue">
+                                                                <actionProperties type="com.fnfr.svt.execution.builtin.actions.ExecutionIssuePropertyGroup" severity="OK">
+                                                                    <message>Connected to chassis at [stc_ip]</message>
+                                                                </actionProperties>
+                                                            </item>
+                                                        </actionsWhenFalse>
+                                                    </ruleProperties>
+                                                </processorInfo>
+                                            </item>
+                                        </analysisRules>
+                                    </postProcessing>
+                                    <eventHandlers>
+                                        <item name="OnToolError">
+                                            <item actionId="DeclareExecutionIssue">
+                                                <actionProperties type="com.fnfr.svt.execution.builtin.actions.ExecutionIssuePropertyGroup">
+                                                    <message>Failed to connect to STC chassis at [stc_ip]</message>
+                                                </actionProperties>
+                                            </item>
+                                            <item actionId="FailTest">
+                                                <actionProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                            </item>
+                                            <item actionId="ExitExecution">
+                                                <actionProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                            </item>
+                                            <item actionId="SkipRemainingRules">
+                                                <actionProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                            </item>
+                                        </item>
+                                    </eventHandlers>
+                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                </item>
+                            </nestedSteps>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
                         <item guid="4481f5b9-0c13-4d13-b97d-9dc9379062f4" action="eval" session="s1">
@@ -251,13 +339,13 @@
                         </item>
                         <item guid="16ac3687-7515-42ca-aa99-57e5ee150019" action="eval" useFieldsInCommand="false">
                             <command>
-                                <body>tst_ports_list[&apos;west&apos;] = param(&apos;west_ports&apos;).split(&apos; &apos;)</body>
+                                <body>tst_ports_list[&apos;west&apos;] = param(&apos;stc_ports_west&apos;).split(&apos; &apos;)</body>
                             </command>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
                         <item guid="c336ff31-6eda-41f2-9741-648b0952aead" action="eval" useFieldsInCommand="false">
                             <command>
-                                <body>tst_ports_list[&apos;east&apos;] = param(&apos;east_ports&apos;).split(&apos; &apos;)</body>
+                                <body>tst_ports_list[&apos;east&apos;] = param(&apos;stc_ports_east&apos;).split(&apos; &apos;)</body>
                             </command>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
@@ -292,6 +380,12 @@
                                 <body>nam in list(cfg_ports_list.keys()):</body>
                             </command>
                             <nestedSteps>
+                                <item guid="78254f79-f5b9-4e22-8278-380d7cc5586d" action="eval" useFieldsInCommand="false">
+                                    <command>
+                                        <body>stc_ip = param(&apos;stc_ip_&apos;+nam)</body>
+                                    </command>
+                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                </item>
                                 <item guid="6c1a266b-eb66-4f34-8d8f-e4ae5786cb42" action="message" useFieldsInCommand="false">
                                     <command>
                                         <body>Information:Mapping [nam] ports: [&apos; &apos;.join(tst_ports_list[nam])]</body>
@@ -308,12 +402,6 @@
                                         <item guid="a57d6481-1b41-47fb-ae76-8533188fc3a9" action="eval" useFieldsInCommand="false">
                                             <command>
                                                 <body>port_id = cfg_ports_list[nam][i]</body>
-                                            </command>
-                                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
-                                        </item>
-                                        <item guid="b5f2ba04-f6c8-4280-aeb1-4e047f048511" action="eval" skip="true" useFieldsInCommand="false">
-                                            <command>
-                                                <body>cur_gen = tmp_list[0]</body>
                                             </command>
                                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                         </item>
@@ -497,10 +585,10 @@
                     <nestedSteps>
                         <item guid="f5a5faac-b20a-4b20-97bb-566dabd9451d" action="message" useFieldsInCommand="false">
                             <command>
-                                <body>Information:Setting results directory to [param(&apos;results_dir&apos;)]</body>
+                                <body>Information:Setting STC results directory to [param(&apos;results_dir_stc&apos;)]</body>
                             </command>
                             <applicationProperties type="com.fnfr.svt.execution.builtin.exec.MessagePropertyGroup">
-                                <message inherit="false">Setting results directory to [param(&apos;results_dir&apos;)]</message>
+                                <message inherit="false">Setting STC results directory to [param(&apos;results_dir_stc&apos;)]</message>
                             </applicationProperties>
                         </item>
                         <item guid="3096e15e-c8f6-463a-99bd-df18e5b7ca7c" action="eval" session="s1">
@@ -530,7 +618,7 @@
                         </item>
                         <item guid="e88cc52e-35e5-43ef-a036-a3f23a846d0d" action="eval" session="s1">
                             <command>
-                                <body>stc::config testresultsetting1 -SaveResultsRelativeTo NONE -ResultsDirectory [param(&apos;results_dir&apos;)]</body>
+                                <body>stc::config testresultsetting1 -SaveResultsRelativeTo NONE -ResultsDirectory [param(&apos;results_dir_stc&apos;)]</body>
                             </command>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
@@ -797,7 +885,7 @@
                         </item>
                         <item guid="ea68c98c-344c-4973-8e7c-41c71cb9c7c4" action="eval" useFieldsInCommand="false">
                             <command>
-                                <body>pretest_dir_list = glob.glob(param(&apos;results_dir&apos;)+&apos;/Results/&apos;+config_file_nam+&apos;_*&apos;)</body>
+                                <body>pretest_dir_list = glob.glob(param(&apos;results_dir_stc&apos;)+&apos;/Results/&apos;+config_file_nam+&apos;_*&apos;)</body>
                             </command>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
@@ -853,18 +941,18 @@
                                 <item guid="3520f976-dcfa-4099-8f84-e340202b8c99" action="startSequencer" session="s1">
                                     <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                 </item>
-                                <item guid="b6607952-a86b-4f22-9c1c-c046cc58ca29" action="comment" useFieldsInCommand="false">
+                                <item guid="b6607952-a86b-4f22-9c1c-c046cc58ca29" action="comment" skip="true" useFieldsInCommand="false">
                                     <command>
                                         <body>debug stuff don&apos;t need now</body>
                                     </command>
                                     <nestedSteps>
-                                        <item guid="eb27e273-9904-4cfa-b08c-9a7952592afc" action="eval" skip="true" useFieldsInCommand="false">
+                                        <item guid="eb27e273-9904-4cfa-b08c-9a7952592afc" action="eval" useFieldsInCommand="false">
                                             <command>
                                                 <body>state = &apos;STARTING&apos;</body>
                                             </command>
                                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                         </item>
-                                        <item guid="2e9f9397-9937-4082-833f-14294b9f21f9" action="while" skip="true" useFieldsInCommand="false">
+                                        <item guid="2e9f9397-9937-4082-833f-14294b9f21f9" action="while" useFieldsInCommand="false">
                                             <command>
                                                 <body>state != &apos;IDLE&apos;:</body>
                                             </command>
@@ -938,7 +1026,7 @@
                                     <nestedSteps>
                                         <item guid="d9beeaba-7009-4b24-ae7f-ce9a01146d4c" action="eval" useFieldsInCommand="false">
                                             <command>
-                                                <body>posttest_dir_list = glob.glob(param(&apos;results_dir&apos;)+&apos;/Results/&apos;+config_file_nam+&apos;_*&apos;)</body>
+                                                <body>posttest_dir_list = glob.glob(param(&apos;results_dir_stc&apos;)+&apos;/Results/&apos;+config_file_nam+&apos;_*&apos;)</body>
                                             </command>
                                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                         </item>
@@ -1000,7 +1088,7 @@
                                         </item>
                                         <item guid="94eddf31-5515-453d-8686-d04e7218bd83" action="call" useFieldsInCommand="false">
                                             <command>
-                                                <body>writeCsv(dir=res_dir,db_session = &apos;db1&apos;)</body>
+                                                <body>writeCsv(dir=res_dir,db_session = &apos;db1&apos;,summary_file=summary_file,time_stamp = time_stamp)</body>
                                             </command>
                                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                         </item>
@@ -1050,7 +1138,7 @@
                             <nestedSteps>
                                 <item guid="dde58eb8-9731-48f3-94dc-d380f6a1000c" action="eval" useFieldsInCommand="false">
                                     <command>
-                                        <body>pretest_dir_list = glob.glob(param(&apos;results_dir&apos;)+&apos;/Results/&apos;+config_file_nam+&apos;_*&apos;)</body>
+                                        <body>pretest_dir_list = glob.glob(param(&apos;results_dir_stc&apos;)+&apos;/Results/&apos;+config_file_nam+&apos;_*&apos;)</body>
                                     </command>
                                     <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                 </item>
@@ -1150,7 +1238,7 @@
                                     <nestedSteps>
                                         <item guid="a51120fa-3bf6-4e64-9f65-b5b5e76ce58a" action="eval" useFieldsInCommand="false">
                                             <command>
-                                                <body>posttest_dir_list = glob.glob(param(&apos;results_dir&apos;)+&apos;/Results/&apos;+config_file_nam+&apos;_*&apos;)</body>
+                                                <body>posttest_dir_list = glob.glob(param(&apos;results_dir_stc&apos;)+&apos;/Results/&apos;+config_file_nam+&apos;_*&apos;)</body>
                                             </command>
                                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                         </item>
@@ -1212,7 +1300,7 @@
                                         </item>
                                         <item guid="4b90269f-d1cc-4159-a0e7-d14292b54b6a" action="call" useFieldsInCommand="false">
                                             <command>
-                                                <body>writeCsv(dir=res_dir,db_session = &apos;db2&apos;,imix = &apos;True&apos;)</body>
+                                                <body>writeCsv(dir=res_dir,db_session = &apos;db2&apos;,imix = &apos;True&apos;,summary_file=summary_file,time_stamp = time_stamp)</body>
                                             </command>
                                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                         </item>
@@ -1245,6 +1333,7 @@
                     <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                 </item>
             </steps>
+            <response>{}</response>
         </item>
         <item name="getChassisTemp" isPublic="true">
             <steps>
@@ -1651,9 +1740,9 @@
                                                     </postProcessing>
                                                     <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                                 </item>
-                                                <item guid="c3740588-8322-492a-8443-dff240adab4c" action="comment" skip="true" useFieldsInCommand="false">
+                                                <item guid="c3740588-8322-492a-8443-dff240adab4c" action="comment" useFieldsInCommand="false">
                                                     <command>
-                                                        <body>BUG FIX - write empty string to streamblock list</body>
+                                                        <body>BUG FIX - rewrite streamblock list</body>
                                                     </command>
                                                     <nestedSteps>
                                                         <item guid="7c5345e1-8e60-4241-9c9c-200bbd2459ac" action="eval" session="s1">
@@ -1710,7 +1799,7 @@
                                                                     <nestedSteps>
                                                                         <item guid="6cac454f-35d6-4f18-89d3-92ca3e91c72e" action="eval" session="s1">
                                                                             <command>
-                                                                                <body>stc::config [rfc_cfg] -DurationSeconds [param(&apos;iteration_duration&apos;)] -RateLowerLimit [param(&apos;rate_lower_limit&apos;)] -RateUpperLimit [param(&apos;rate_upper_limit&apos;)] -RateInitial [param(&apos;rate_initial&apos;)] -Resolution [param(&apos;rate_resolution&apos;)] -CustomFrameSizeList {[frames]} -FrameSizeIterationMode CUSTOM</body>
+                                                                                <body>stc::config [rfc_cfg] -DurationSeconds [param(&apos;iteration_duration&apos;)] -RateLowerLimit [param(&apos;rate_lower_limit&apos;)] -RateUpperLimit [param(&apos;rate_upper_limit&apos;)] -RateInitial [param(&apos;rate_initial&apos;)] -Resolution [param(&apos;rate_resolution&apos;)] -CustomFrameSizeList {[frames]} -FrameSizeIterationMode CUSTOM -RateStep [param(&apos;rate_step&apos;)]</body>
                                                                             </command>
                                                                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                                                         </item>
@@ -2031,27 +2120,88 @@
                         <body>not in report</body>
                     </command>
                     <nestedSteps>
+                        <item guid="c5f598b5-3a0b-4a01-99e8-18ff210deab1" action="eval" useFieldsInCommand="false">
+                            <command>
+                                <body>expected = {}</body>
+                            </command>
+                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        </item>
+                        <item guid="47689bc1-7876-46a8-ac27-b48044a976d1" action="eval" useFieldsInCommand="false">
+                            <command>
+                                <body>rx = {}</body>
+                            </command>
+                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        </item>
                         <item guid="504390d5-070d-4e8b-b264-b23a473c5898" action="eval" useFieldsInCommand="false">
                             <command>
-                                <body>res_csv = dir+&apos;/results.csv&apos;</body>
+                                <body>res_csv = param(&apos;results_dir&apos;)+&apos;/results_&apos;+time_stamp+&apos;.csv&apos;</body>
                             </command>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
-                        <item guid="078b2701-7233-43c6-b752-ffbe046b6e8a" action="eval" useFieldsInCommand="false">
+                        <item guid="85eba365-5b6e-4004-9e4a-f30295897daf" action="eval" useFieldsInCommand="false">
                             <command>
-                                <body>f = open(res_csv,&apos;w&apos;)</body>
+                                <body>print(res_csv)</body>
                             </command>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
-                        <item guid="8652bb56-35a0-48a9-b564-fb687da7c922" action="eval" useFieldsInCommand="false">
+                        <item guid="b1b41764-6a34-44c6-8c59-471581106327" action="if" useFieldsInCommand="false">
                             <command>
-                                <body>f.write(&apos;,&apos;.join(param(&apos;results_columns&apos;))+&apos;\\n&apos;)</body>
+                                <body>os.path.isfile(res_csv):</body>
+                            </command>
+                            <nestedSteps>
+                                <item guid="078b2701-7233-43c6-b752-ffbe046b6e8a" action="eval" useFieldsInCommand="false">
+                                    <command>
+                                        <body>f = open(res_csv,&apos;a&apos;)</body>
+                                    </command>
+                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                </item>
+                            </nestedSteps>
+                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        </item>
+                        <item guid="f57882c2-3d94-48d5-8e69-4f16257368ac" action="else" useFieldsInCommand="false">
+                            <nestedSteps>
+                                <item guid="fddc2baf-6eb9-4da8-8f19-6d3d2525c2b4" action="eval" useFieldsInCommand="false">
+                                    <command>
+                                        <body>f = open(res_csv,&apos;w&apos;)</body>
+                                    </command>
+                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                </item>
+                                <item guid="ec5f1bc0-ab61-4a06-9599-9138a90cd825" action="eval" useFieldsInCommand="false">
+                                    <command>
+                                        <body>f.write(param(&apos;test_description&apos;)+&apos;\\n&apos;)</body>
+                                    </command>
+                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                </item>
+                                <item guid="b1b5254e-1621-4435-a0df-9d0c6e821d8f" action="eval" useFieldsInCommand="false">
+                                    <command>
+                                        <body>f.write(&apos;,&apos;.join(param(&apos;results_columns&apos;))+&apos;,ResultsDB\\n&apos;)</body>
+                                    </command>
+                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                </item>
+                            </nestedSteps>
+                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        </item>
+                        <item guid="c7d9a7a1-4811-42ea-a2f0-a0107dd93337" action="eval" useFieldsInCommand="false">
+                            <command>
+                                <body>db_cols = param(&apos;results_columns&apos;)</body>
+                            </command>
+                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        </item>
+                        <item guid="40f7dde4-f7bf-4dcd-9c31-989d71f52b88" action="eval" useFieldsInCommand="false">
+                            <command>
+                                <body>db_cols.remove(&apos;LostCount&apos;)</body>
+                            </command>
+                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                        </item>
+                        <item guid="2ec39860-a260-4dab-8376-496ae71bc0f8" action="eval" useFieldsInCommand="false">
+                            <command>
+                                <body>db_cols.remove(&apos;LostPercent&apos;)</body>
                             </command>
                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                         </item>
                         <item guid="fd023b8b-446a-457f-a274-29108ded27a0" action="execute" session="[db_session]">
                             <command>
-                                <body>SELECT [&apos;,&apos;.join(param(&apos;results_columns&apos;))] FROM Rfc2544ThroughputPerLoadResult</body>
+                                <body>SELECT [&apos;,&apos;.join(db_cols)] FROM Rfc2544ThroughputPerLoadResult</body>
                             </command>
                             <postProcessing>
                                 <analysisRules>
@@ -2106,18 +2256,86 @@
                                             </nestedSteps>
                                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                         </item>
-                                        <item guid="21717455-ebde-47ac-84a1-dac2673056ae" action="else" useFieldsInCommand="false">
+                                        <item guid="21717455-ebde-47ac-84a1-dac2673056ae" action="elif" useFieldsInCommand="false">
+                                            <command>
+                                                <body>col == &apos;LostCount&apos;:</body>
+                                            </command>
                                             <nestedSteps>
                                                 <item guid="70dec0a1-bf8d-47cc-8a8b-ed6b73668305" action="eval" useFieldsInCommand="false">
                                                     <command>
-                                                        <body>line_list.append(query(&apos;results_db&apos;,&apos;resultset/row[&apos;+str(i)+&apos;]/&apos;+col))</body>
+                                                        <body>line_list.append(str(expected[i]-rx[i]))</body>
                                                     </command>
                                                     <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                                 </item>
                                             </nestedSteps>
                                             <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                         </item>
+                                        <item guid="39112314-a7ff-4308-b475-473fb66bbabb" action="elif" useFieldsInCommand="false">
+                                            <command>
+                                                <body>col == &apos;LostPercent&apos;:</body>
+                                            </command>
+                                            <nestedSteps>
+                                                <item guid="4ed4b467-3bbd-433a-ba10-5c62d5c0e06f" action="eval" useFieldsInCommand="false">
+                                                    <command>
+                                                        <body>line_list.append(str(((expected[i]-rx[i])/expected[i])*100))</body>
+                                                    </command>
+                                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                                </item>
+                                            </nestedSteps>
+                                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                        </item>
+                                        <item guid="563db4ac-ce66-4cd8-a6cf-b6b3d8bfd906" action="else" useFieldsInCommand="false">
+                                            <nestedSteps>
+                                                <item guid="6eccdbb7-7eaf-419c-93d1-09d02c6789fa" action="eval" useFieldsInCommand="false">
+                                                    <command>
+                                                        <body>val = query(&apos;results_db&apos;,&apos;resultset/row[&apos;+str(i)+&apos;]/&apos;+col)</body>
+                                                    </command>
+                                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                                </item>
+                                                <item guid="56f80e34-70a4-48f3-b5c0-7f1c37f9f219" action="eval" useFieldsInCommand="false">
+                                                    <command>
+                                                        <body>line_list.append(val)</body>
+                                                    </command>
+                                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                                </item>
+                                                <item guid="d2381179-5272-4079-a1dc-8a89d95aa460" action="if" useFieldsInCommand="false">
+                                                    <command>
+                                                        <body>col == &apos;ExpectedFrameCount&apos;:</body>
+                                                    </command>
+                                                    <nestedSteps>
+                                                        <item guid="68e2586d-1959-44af-b446-71b1277248b8" action="eval" useFieldsInCommand="false">
+                                                            <command>
+                                                                <body>expected[i] = int(val)</body>
+                                                            </command>
+                                                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                                        </item>
+                                                    </nestedSteps>
+                                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                                </item>
+                                                <item guid="1e7a9863-1358-45a5-9705-60857c602b13" action="elif" useFieldsInCommand="false">
+                                                    <command>
+                                                        <body>col == &apos;RxFrameCount&apos;:</body>
+                                                    </command>
+                                                    <nestedSteps>
+                                                        <item guid="03a3632c-b9c1-4e76-b2e3-069737d8a836" action="eval" useFieldsInCommand="false">
+                                                            <command>
+                                                                <body>rx[i] = int(val)</body>
+                                                            </command>
+                                                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                                        </item>
+                                                    </nestedSteps>
+                                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                                </item>
+                                            </nestedSteps>
+                                            <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                        </item>
                                     </nestedSteps>
+                                    <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
+                                </item>
+                                <item guid="1bdb3240-1cb9-4547-b60a-606fa946ce87" action="eval" useFieldsInCommand="false">
+                                    <command>
+                                        <body>line_list.append(summary_file)</body>
+                                    </command>
                                     <applicationProperties type="com.fnfr.svt.documents.EmptyPropertyGroup"/>
                                 </item>
                                 <item guid="c1d65c9e-64dc-4d4a-91cd-747a2748656d" action="eval" useFieldsInCommand="false">
@@ -2151,7 +2369,12 @@
 </description>
                     <defaultValue>False</defaultValue>
                 </item>
+                <item name="summary_file">
+                    <isMandatory>true</isMandatory>
+                </item>
+                <item name="time_stamp"/>
             </arguments>
+            <response>{}</response>
         </item>
     </procedures>
 </testCase>
