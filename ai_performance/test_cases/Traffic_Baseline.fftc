@@ -12,17 +12,16 @@
             <parameters escape="true">
                 <parameters xmlns:pt="http://www.fnfr.com/schemas/parameterTree">
                     <test_description pt:description="Text added to CSV">The First TEST!!!</test_description>
-                    <config_file>project://ai_performance/configuration/baseline_2544_PCL.xml</config_file>
+                    <config_file pt:datatype="Config_Files">project://ai_performance/configuration/baseline_2544_PCL.xml</config_file>
                     <stc_ip_east pt:description="10.146.129.101">10.146.129.101</stc_ip_east>
-                    <stc_ports_east pt:description="1/1 1/2 1/3 1/4 1/5 1/6 1/7 1/8">1/1 1/2</stc_ports_east>
+                    <stc_ports_east pt:description="1/1 1/2 1/3 1/4 1/5 1/6 1/7 1/8">1/1 1/2 1/3 1/4 1/5 1/6 1/7 1/8</stc_ports_east>
                     <stc_ip_west pt:description="10.146.129.102">10.146.129.102</stc_ip_west>
-                    <stc_ports_west pt:description="2/9 2/10 2/11 2/12 2/13 2/14 2/15 2/16">1/3 1/4</stc_ports_west>
-                    <stcv_license_server pt:description="Only needed for STC Virtual"/>
+                    <stc_ports_west pt:description="2/9 2/10 2/11 2/12 2/13 2/14 2/15 2/16">2/9 2/10 2/11 2/12 2/13 2/14 2/15 2/16</stc_ports_west>
                     <iteration_duration pt:datatype="INTEGER">20</iteration_duration>
                     <rate_lower_limit pt:datatype="INTEGER" pt:description="percent line rate">1</rate_lower_limit>
                     <rate_upper_limit pt:datatype="INTEGER" pt:description="percent line rate">50</rate_upper_limit>
                     <rate_initial pt:datatype="INTEGER" pt:description="percent line rate">45</rate_initial>
-                    <rate_step pt:description="percent line rate">5</rate_step>
+                    <rate_step pt:datatype="INTEGER" pt:description="percent line rate">5</rate_step>
                     <rate_resolution pt:datatype="INTEGER" pt:description="percent">1</rate_resolution>
                     <frame_sizes pt:description="integer: 64 - 9000 | &apos;imix&apos;   64 128 512 1024 1518 imix">512</frame_sizes>
                     <results_dir_stc pt:description="F:/Spirent/Automation/STC_Results">F:/Spirent/Automation/STC_Results</results_dir_stc>
@@ -31,23 +30,23 @@
                     <tcl_library pt:description="file:/C:/Program%20Files/Spirent%20Communications/Spirent%20TestCenter%205.15/TCL/lib/">file:C:/Program%20Files/Spirent%20Communications/Spirent%20TestCenter%205.15/TCL/lib/</tcl_library>
                     <results_columns>
                         <item pt:description="Frame Size">
-                            <db_item>FrameSize</db_item>
+                            <db_item pt:datatype="DB_Columns">FrameSize</db_item>
                             <display>Frame Size</display>
                         </item>
                         <item pt:description="Intended Load %">
-                            <db_item>IntendedLoad</db_item>
+                            <db_item pt:datatype="DB_Columns">IntendedLoad</db_item>
                             <display>Intended Load %</display>
                         </item>
                         <item pt:description="Expected Frame Count">
-                            <db_item>ExpectedFrameCount</db_item>
+                            <db_item pt:datatype="DB_Columns">ExpectedFrameCount</db_item>
                             <display>Expected Frame Count</display>
                         </item>
                         <item pt:description="Tx Frame Count">
-                            <db_item>TxFrameCount</db_item>
+                            <db_item pt:datatype="DB_Columns">TxFrameCount</db_item>
                             <display>Tx Frame Count</display>
                         </item>
                         <item pt:description="Rx Frame Count">
-                            <db_item>RxFrameCount</db_item>
+                            <db_item pt:datatype="DB_Columns">RxFrameCount</db_item>
                             <display>Rx Frame Count</display>
                         </item>
                         <item pt:description="Lost Count (calculated Tx-Rx)">
@@ -59,36 +58,167 @@
                             <display>Lost Percent</display>
                         </item>
                         <item pt:description="Tx Frames Per Sec">
-                            <db_item>OfferedFPSLoad</db_item>
+                            <db_item pt:datatype="DB_Columns">OfferedFPSLoad</db_item>
                             <display>Tx Frames Per Sec</display>
                         </item>
                         <item pt:description="Rx Frames Per Sec">
-                            <db_item>ForwardingRate</db_item>
+                            <db_item pt:datatype="DB_Columns">ForwardingRate</db_item>
                             <display>Rx Frames Per Sec</display>
                         </item>
                         <item pt:description="Flooded Frames">
-                            <db_item>FloodedFrameCount</db_item>
+                            <db_item pt:datatype="DB_Columns">FloodedFrameCount</db_item>
                             <display>Flooded Frames</display>
                         </item>
                         <item pt:description="Out of Sequence">
-                            <db_item>OutOfSeqCount</db_item>
+                            <db_item pt:datatype="DB_Columns">OutOfSeqCount</db_item>
                             <display>Out of Sequence</display>
                         </item>
                         <item pt:description="Min Latency (us)">
-                            <db_item>MinLatency</db_item>
+                            <db_item pt:datatype="DB_Columns">MinLatency</db_item>
                             <display>Min Latency (us)</display>
                         </item>
                         <item pt:description="Avg Latency (us)">
-                            <db_item>AvgLatency</db_item>
+                            <db_item pt:datatype="DB_Columns">AvgLatency</db_item>
                             <display>Avg Latency (us)</display>
                         </item>
                         <item pt:description="Max Latency (us)">
-                            <db_item>MaxLatency</db_item>
+                            <db_item pt:datatype="DB_Columns">MaxLatency</db_item>
                             <display>Max Latency (us)</display>
                         </item>
                     </results_columns>
+                    <stcv_license_server pt:description="Only needed for STC Virtual"/>
                 </parameters>
             </parameters>
+            <parametersTypes>
+                <item name="DB_Columns">
+                    <items>
+                        <item name="MaxLatencyThresholdExceeded"/>
+                        <item name="OutOfSeqThresholdExceeded"/>
+                        <item name="DurationInSec"/>
+                        <item name="Ipv6ExtensionHeader"/>
+                        <item name="Ipv6Ipv4CoexistenceRatio"/>
+                        <item name="Ipv6IntendedLoad"/>
+                        <item name="Ipv6IntendedPCTLoad"/>
+                        <item name="Ipv6IntendedFPSLoad"/>
+                        <item name="Ipv6IntendedIBGLoad"/>
+                        <item name="Ipv6IntendedBpsLoad"/>
+                        <item name="Ipv6IntendedKbpsLoad"/>
+                        <item name="Ipv6IntendedMbpsLoad"/>
+                        <item name="Ipv4IntendedLoad"/>
+                        <item name="Ipv4IntendedPCTLoad"/>
+                        <item name="Ipv4IntendedFPSLoad"/>
+                        <item name="Ipv4IntendedIBGLoad"/>
+                        <item name="Ipv4IntendedBpsLoad"/>
+                        <item name="Ipv4IntendedKbpsLoad"/>
+                        <item name="Ipv4IntendedMbpsLoad"/>
+                        <item name="Ipv6OfferedLoad"/>
+                        <item name="Ipv6OfferedPCTLoad"/>
+                        <item name="Ipv6OfferedFPSLoad"/>
+                        <item name="Ipv6OfferedIBGLoad"/>
+                        <item name="Ipv6OfferedBpsLoad"/>
+                        <item name="Ipv6OfferedKbpsLoad"/>
+                        <item name="Ipv6OfferedMbpsLoad"/>
+                        <item name="Ipv4OfferedLoad"/>
+                        <item name="Ipv4OfferedPCTLoad"/>
+                        <item name="Ipv4OfferedFPSLoad"/>
+                        <item name="Ipv4OfferedIBGLoad"/>
+                        <item name="Ipv4OfferedBpsLoad"/>
+                        <item name="Ipv4OfferedKbpsLoad"/>
+                        <item name="Ipv4OfferedMbpsLoad"/>
+                        <item name="Ipv6TxFrameCount"/>
+                        <item name="Ipv4TxFrameCount"/>
+                        <item name="Ipv6TxFrameRate"/>
+                        <item name="Ipv4TxFrameRate"/>
+                        <item name="Ipv6RxFrameCount"/>
+                        <item name="Ipv4RxFrameCount"/>
+                        <item name="Ipv6FrameLoss"/>
+                        <item name="Ipv4FrameLoss"/>
+                        <item name="Ipv6MinLatency"/>
+                        <item name="Ipv4MinLatency"/>
+                        <item name="Ipv6AvgLatency"/>
+                        <item name="Ipv4AvgLatency"/>
+                        <item name="Ipv6MaxLatency"/>
+                        <item name="Ipv4MaxLatency"/>
+                        <item name="Ipv6MinJitter"/>
+                        <item name="Ipv4MinJitter"/>
+                        <item name="Ipv6AvgJitter"/>
+                        <item name="Ipv4AvgJitter"/>
+                        <item name="Ipv6MaxJitter"/>
+                        <item name="Ipv4MaxJitter"/>
+                        <item name="SearchKey"/>
+                        <item name="TrafficGroupWeightRatio"/>
+                        <item name="ThroughputRate"/>
+                        <item name="Result"/>
+                        <item name="Throughput"/>
+                        <item name="MinLatency"/>
+                        <item name="AvgLatency"/>
+                        <item name="MaxLatency"/>
+                        <item name="MinJitter"/>
+                        <item name="AvgJitter"/>
+                        <item name="MaxJitter"/>
+                        <item name="ForwardingRate"/>
+                        <item name="OutOfSeqCount"/>
+                        <item name="TxMbpsLoad"/>
+                        <item name="MbpsLineRate"/>
+                        <item name="TrialNum"/>
+                        <item name="IterationNum"/>
+                        <item name="ConfiguredFrameSize"/>
+                        <item name="FrameSize"/>
+                        <item name="FrameSizeType"/>
+                        <item name="FrameLengthDistribution"/>
+                        <item name="BurstSize"/>
+                        <item name="IntendedLoad"/>
+                        <item name="IntendedPCTLoad"/>
+                        <item name="IntendedFPSLoad"/>
+                        <item name="IntendedIBGLoad"/>
+                        <item name="IntendedBpsLoad"/>
+                        <item name="IntendedKbpsLoad"/>
+                        <item name="IntendedMbpsLoad"/>
+                        <item name="OfferedLoad"/>
+                        <item name="OfferedPCTLoad"/>
+                        <item name="OfferedFPSLoad"/>
+                        <item name="OfferedIBGLoad"/>
+                        <item name="OfferedBpsLoad"/>
+                        <item name="OfferedKbpsLoad"/>
+                        <item name="OfferedMbpsLoad"/>
+                        <item name="LoadSizeType"/>
+                        <item name="TxFrameCount"/>
+                        <item name="TxFrameRate"/>
+                        <item name="ExpectedFrameCount"/>
+                        <item name="RxFrameCount"/>
+                        <item name="OtherFrameCount"/>
+                        <item name="FrameLoss"/>
+                        <item name="PercentLoss"/>
+                        <item name="FloodedFrameCount"/>
+                        <item name="DuplicateFrameCount"/>
+                        <item name="PauseFrameCount"/>
+                        <item name="PfcFrameCount"/>
+                        <item name="FcsErrorFrameCount"/>
+                        <item name="ChecksumErrorCount"/>
+                        <item name="FrameRate"/>
+                        <item name="FloodCount"/>
+                        <item name="LoadSize"/>
+                        <item name="RxSigFrameCount"/>
+                        <item name="TxSigFrameCount"/>
+                        <item name="RxNonSigFrameCount"/>
+                        <item name="RxExpectedFrameCount"/>
+                        <item name="DisplayLoadUnit"/>
+                        <item name="ResultState"/>
+                        <item name="PcTimestamp"/>
+                        <item name="PortUiName"/>
+                        <item name="Active"/>
+                        <item name="LocalActive"/>
+                        <item name="Handle"/>
+                        <item name="Name"/>
+                        <item name="AlarmState"/>
+                    </items>
+                </item>
+                <item name="Config_Files">
+                    <items>
+                        <item name="project://ai_performance/configuration/baseline_2544_PCL.xml"/>
+                    </items>
+                </item>
+            </parametersTypes>
         </parameters>
     </execution>
     <procedures>
